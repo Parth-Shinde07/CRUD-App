@@ -1,33 +1,43 @@
 package com.example.challenge.app;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
+
 import java.util.List;
 
 @RestController
 public class ChallengeController {
 
-    private List<Challenge> challenges=
-            new ArrayList<>();
+    private ChallengeService challengeService;
 
-    public ChallengeController(){
-        Challenge challenge1=
-                new Challenge(1L,"January","learn programming lan");
-        challenges.add(challenge1);
+
+    public ChallengeController(ChallengeService challengeService){
+        this.challengeService=challengeService;
     }
 
     @GetMapping("/challenges")
-    public List<Challenge> getAllChallenges(){
-        return challenges;
+    public ResponseEntity<List<Challenge>> getAllChallenges(){
+        return new ResponseEntity<>(ChallengeService.getAllChallenges(),HttpStatus.OK);
     }
 
     @PostMapping("/challenges")
-    public  String addChallenge(@RequestBody Challenge challenge){
-        challenges.add(challenge);
-        return "challenge added Successfully";
+    public  ResponseEntity<String> addChallenge(@RequestBody Challenge challenge){
+        boolean isChallengeAdded=
+                ChallengeService.addChallenge(challenge);
+        if(isChallengeAdded)
+            return new ResponseEntity<>("challenge added Successfully",HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Challenge not added",HttpStatus.NOT_FOUND);
     }
-}
+
+    @GetMapping("/challenges/{month}")
+    public ResponseEntity<Challenge> getAChallenge(@PathVariable String month){
+        Challenge challenge=challengeService.getChallenge(month);
+        if(challenge!=null)
+            return new ResponseEntity<>(challenge,HttpStatus.OK);
+        else
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+ }
